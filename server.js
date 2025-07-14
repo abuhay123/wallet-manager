@@ -41,3 +41,15 @@ app.post('/buy-token-shdy', async (req, res) => {
 
   res.send({ message: `🪙 ${successCount} ארנקים רכשו את SHDY.` });
 });
+const express = require('express');
+const app = express();
+const fs = require('fs');
+
+app.get('/export-wallets', (req, res) => {
+  const wallets = JSON.parse(fs.readFileSync('wallets.json'));
+  res.setHeader('Content-Disposition', 'attachment; filename=wallets.json');
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify(wallets, null, 2));
+});
+
+app.listen(3000, () => console.log('✅ Server running on http://localhost:3000'));
