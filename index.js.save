@@ -1,0 +1,181 @@
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const fs = require('fs');
+const web3 = require('@solana/web3.js');
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static('public'));
+
+const PORT const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const fs = require('fs');
+const web3 = require('@solana/web3.js');
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static('public'));
+
+const PORT = 3000;
+
+// יצירת 100 ארנקים
+app.post('/create-wallets', async (req, res) => {
+  const wallets = [];
+  for (let i = 0; i < 100; i++) {
+    const keypair = web3.Keypair.generate();
+    wallets.push({
+      publicKey: keypair.publicKey.toBase58(),
+      secretKey: Buffer.from(keypair.secretKey).toString('base64'),
+    });
+  }
+  fs.writeFileSync('wallets.json', JSON.stringify(wallets, null, 2));
+  res.send({ message: '✅ נוצרו 100 ארנקים' });
+});
+
+// שליפת ארנקים
+app.get('/wallets.json', (req, res) => {
+  const data = fs.readFileSync('wallets.json');
+  res.send(JSON.parse(data));
+});
+
+// בדיקת יתרה
+app.get('/balance', async (req, res) => {
+  const pubKey = new web3.PublicKey(req.query.pubKey);
+  const connection = new web3.Connection(web3.clusterApiUrl('mainnet-beta'));
+  const balance = await connection.getBalance(pubKey);
+  res.send({ balance: balance / web3.LAMPORTS_PER_SOL });
+});
+
+// שליחה מכל הארנקים
+app.post('/send-all', async (req, res) => {
+  const { to, amount } = req.body;
+  if (!to || !amount) return res.status(400).send({ message: "נתונים חסרים" });
+
+  const connection = new web3.Connection(web3.clusterApiUrl('mainnet-beta'));
+  const wallets = JSON.parse(fs.readFileSync('wallets.json'));
+  const destination = new web3.PublicKey(to);
+  const lamports = amount * web3.LAMPORTS_PER_SOL;
+  let successCount = 0;
+
+  for (let i = 0; i < wallets.length; i++) {
+    try {
+      const secretKey = Uint8Array.from(Buffer.from(wallets[i].secretKey, 'base64'));
+      const keypair = web3.Keypair.fromSecretKey(secretKey);
+      const tx = new web3.Transaction().add(
+        web3.SystemProgram.transfer({
+          fromPubkey: keypair.publicKey,
+          toPubkey: destination,
+          lamports: lamports,
+        })
+      );
+      await web3.sendAndConfirmTransaction(connection, tx, [keypair]);
+      successCount++;
+    } catch (err) {
+      console.log(`❌ ארנק ${i + 1} נכשל: ${err.message}`);
+    }
+  }
+
+  res.send({ message: `📤 שליחה הצליחה מ־${successCount} ארנקים.` });
+});
+
+// קנייה (קבלת SOL מכל הארנקים מכתובת)
+app.post('/buy-all', async (req, res) => {
+  const { from, amount } = req.body;
+  if (!from || !amount) return res.status(400).send({ message: "נתונים חסרים" });
+
+  const connection = new web3.Connection(web3.clusterApiUrl('mainnet-beta'));
+  const sender = new web3.PublicKey(from);
+  const lamports = amount * web3.LAMPORTS_PER_SOL;
+  const wallets = JSON.parse(fs.readFileSync('wallets.json'));
+  let successCount = 0;
+
+  for (let i = 0; i < wallets.length; i++) {
+    try {
+      const secretKey = Uint8Array.from(Buffer.from(wallets[i].secretKey, 'base64'));
+      const keypair = web3.Keypair.fromSecretKey(secretKey);
+
+      const tx = new web3.Transaction().add(
+        web3.SystemProgram.transfer({
+          fromPubkey: sender,
+          toPubkey: keypair.publicKey,
+          lamports: lamports,
+        })
+      );
+
+      // שים לב: זה לא יעבוד בלי גישה למפתח הפרטי של "from"
+      // כאן לצורך סימולציה בלבד
+      successCount++;
+    } catch (err) {
+      console.log(`❌ קנייה לארנק ${i + 1} נכשלה: ${err.message}`);
+    }
+  }
+
+  res.send({ message: `💰 הועברו ${amount} SOL ל-${successCount} ארנקים (סימולציה בלבד)` });
+});
+
+// מכירה - שליחה מכל הארנקים לכתובת אחת
+app.post('/sell-all', async (req, res) => {
+  const { to, amount } = req.body;
+  if (!to || !amount) return res.status(400).send({ message: "נתונים חסרים" });
+
+  const connection = new web3.Connection(web3.clusterApiUrl('mainnet-beta'));
+  const destination = new web3.PublicKey(to);
+  const lamports = amount * web3.LAMPORTS_PER_SOL;
+  const wallets = JSON.parse(fs.readFileSync('wallets.json'));
+  let successCount = 0;
+
+  for (let i = 0; i < wallets.length; i++) {
+    try {
+      const secretKey = Uint8Array.from(Buffer.from(wallets[i].secretKey, 'base64'));
+      const keypair = web3.Keypair.fromSecretKey(secretKey);
+
+      const tx = new web3.Transaction().add(
+        web3.SystemProgram.transfer({
+          fromPubkey: keypair.publicKey,
+          toPubkey: destination,
+          lamports: lamports,
+        })
+      );
+
+      await web3.sendAndConfirmTransaction(connection, tx, [keypair]);
+      successCount++;
+    } catch (err) {
+      console.log(`❌ מכירה מארנק ${i + 1} נכשלה: ${err.message}`);
+    }
+  }
+
+  res.send({ message: `💵 נמכרו SOL מ־${successCount} ארנקים.` });
+});
+app.post('/send-one', async (req, res) => {
+  const { secretKey, to, amount } = req.body;
+  if (!secretKey || !to || !amount) return res.status(400).send({ message: "נתונים חסרים" });
+
+  const connection = new web3.Connection(web3.clusterApiUrl('mainnet-beta'));
+  const keypair = web3.Keypair.fromSecretKey(Uint8Array.from(Buffer.from(secretKey, 'base64')));
+  const destination = new web3.PublicKey(to);
+  const lamports = amount * web3.LAMPORTS_PER_SOL;
+
+  try {
+    const tx = new web3.Transaction().add(
+      web3.SystemProgram.transfer({
+        fromPubkey: keypair.publicKey,
+        toPubkey: destination,
+        lamports,
+      })
+    );
+
+    const sig = await web3.sendAndConfirmTransaction(connection, tx, [keypair]);
+    res.send({ message: `✅ נשלח ${amount} SOL. חתימה: ${sig}` });
+  } catch (err) {
+    res.status(500).send({ message: `❌ שגיאה: ${err.message}` });
+  }
+});
+
+
+app.listen(PORT, () => {
+  console.log(`🚀 שרת רץ על http://localhost:${PORT}`);
+});

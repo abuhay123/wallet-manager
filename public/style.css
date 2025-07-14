@@ -1,0 +1,66 @@
+body {
+  direction: rtl;
+  background: #0c0c1d;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 30px;
+}
+button {
+  padding: 8px 20px;
+  margin: 8px;
+  background: #1f6feb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.wallet-box {
+  border: 1px solid #444;
+  margin: 10px auto;
+  padding: 15px;
+  background: #1a1a2e;
+  width: 80%;
+  border-radius: 10px;
+}
+.send-box {
+  background: #222;
+  padding: 20px;
+  margin: 20px auto;
+  border-radius: 10px;
+  width: 90%;
+}
+.send-box input {
+  padding: 10px;
+  margin: 5px;
+  width: 200px;
+  border-radius: 6px;
+  border: none;
+}
+#send-result {
+  margin-top: 10px;
+  font-weight: bold;
+}
+#admin-bar {
+  background: #181818;
+  padding: 20px;
+  margin: 10px auto 30px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+#admin-bar button {
+  background: #3a3aff;
+  border: none;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#admin-bar button:hover {
+  background: #5757ff;
+}
