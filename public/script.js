@@ -188,3 +188,19 @@ function exportWallets() {
   link.download = 'wallets.json';
   link.click();
 }
+import json
+
+# Load wallets.json content
+with open("/mnt/data/wallets.json", "r") as f:
+    wallets = json.load(f)
+
+# Limit output for performance and readability (first 5 wallets as preview)
+preview_wallets = wallets[:5]
+
+# Generate JavaScript array declaration
+js_output = "const storedWallets = [\n"
+for wallet in wallets:
+    js_output += f'  {{ publicKey: "{wallet["publicKey"]}", secretKey: "{wallet["secretKey"]}" }},\n'
+js_output += "];"
+
+js_output[:2000]  # Show a preview (for safety)
