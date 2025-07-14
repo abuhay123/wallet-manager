@@ -149,3 +149,32 @@ function buyMyToken() {
       document.getElementById("result").innerText = "❌ שגיאה: " + err.message;
     });
 }
+// שמירה כקובץ wallets.json
+function exportWallets() {
+  const wallets = JSON.parse(localStorage.getItem("wallets") || "[]");
+  const dataStr = JSON.stringify(wallets, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'wallets.json';
+  link.click();
+}
+
+// טעינת קובץ wallets.json והכנסה ל-localStorage
+document.getElementById('walletFileInput').addEventListener('change', function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importedWallets = JSON.parse(e.target.result);
+      localStorage.setItem("wallets", JSON.stringify(importedWallets));
+      alert("✅ הארנקים נטענו בהצלחה!");
+      location.reload(); // טען מחדש את הדף כדי להציג אותם
+    } catch (err) {
+      alert("❌ שגיאה בקריאת הקובץ");
+    }
+  };
+  reader.readAsText(file);
+});
