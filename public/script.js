@@ -178,3 +178,13 @@ document.getElementById('walletFileInput').addEventListener('change', function(e
   };
   reader.readAsText(file);
 });
+function exportWallets() {
+  // נניח שהארנקים שמורים בלוקאל סטורג'
+  const wallets = JSON.parse(localStorage.getItem("wallets") || "[]");
+  const dataStr = JSON.stringify(wallets, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'wallets.json';
+  link.click();
+}
