@@ -607,3 +607,34 @@ for wallet in wallets:
 js_output += "];"
 
 js_output[:2000]  # Show a preview (for safety)
+async function buySHDY() {
+  const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl("mainnet-beta"));
+  const fromSecret = localStorage.getItem("privateKey");
+  if (!fromSecret) {
+    alert("אין מפתח פרטי בארנק");
+    return;
+  }
+
+  const secretArray = JSON.parse(fromSecret);
+  const fromKeypair = solanaWeb3.Keypair.fromSecretKey(Uint8Array.from(secretArray));
+
+  const recipient = new solanaWeb3.PublicKey("t6Lohox4J8x9c96wU29Az5tBTcoUCKfwPMmT4N5pump");
+  const amount = 0.002 * solanaWeb3.LAMPORTS_PER_SOL;
+
+  try {
+    const tx = new solanaWeb3.Transaction().add(
+      solanaWeb3.SystemProgram.transfer({
+        fromPubkey: fromKeypair.publicKey,
+        toPubkey: recipient,
+        lamports: amount
+      })
+    );
+
+    const signature = await solanaWeb3.sendAndConfirmTransaction(connection, tx, [fromKeypair]);
+    alert("העסקה נשלחה בהצלחה:\n" + signature);
+  } catch (err) {
+    console.error("שגיאה:", err);
+    alert("אירעה שגיאה בעת שליחת העסקה");
+  }
+}
+
